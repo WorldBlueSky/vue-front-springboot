@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import vuefront.demo.mapper.UserMapper;
 import vuefront.demo.pojo.User;
@@ -64,15 +65,22 @@ public class UserController {
     @GetMapping("/page") // 传递页数的参数， ？pageNum=...&pageSize=...
     public IPage<User> findPage(@RequestParam("pageNum") Integer pageNum ,
                                 @RequestParam("pageSize") Integer pageSize,
-                                @RequestParam(defaultValue = "") String username,
-                                @RequestParam(defaultValue = "") String email,
-                                @RequestParam(defaultValue = "") String phone
+                                @RequestParam String username,
+                                @RequestParam String email,
+                                @RequestParam String phone
      ){
+        // 这里如果数据库中字段为null，即使 %% 也匹配不上，所以使用StringUtils工具判断是否为null，符合的话再like匹配，否则不进行like查询
 
         IPage<User> page  = new Page<>(pageNum,pageSize);
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        if(!StringUtils.isEmpty(username))
         queryWrapper.like("username", username);
+
+        if(!StringUtils.isEmpty(email))
         queryWrapper.like("email", email);
+
+        if(!StringUtils.isEmpty(phone))
         queryWrapper.like("phone", phone);
 
         return userService.page(page,queryWrapper);
